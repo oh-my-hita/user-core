@@ -64,6 +64,11 @@ private class UserProfileImpl(private val application: Application) : UserProfil
         }
     }
 
+    override fun updateProfile(nickname: String?, signature: String?): LiveData<DataState<Boolean>> {
+        prefs.edit().putString("nickname", nickname).putString("signature", signature).apply()
+        return MutableLiveData(DataState(true, DataState.STATE.SUCCESS))
+    }
+
     override fun logout() {
         prefs.edit().clear().apply()
         // Host sync state is in a separate module; clear it through the legacy object.
