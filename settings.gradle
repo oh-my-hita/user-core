@@ -1,0 +1,10 @@
+pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google(); mavenCentral()
+        maven { url = uri("https://raw.githubusercontent.com/oh-my-hita/plugin-sdk/master/maven") }
+    }
+}
+rootProject.name = 'user-core'
+include ':plugin'

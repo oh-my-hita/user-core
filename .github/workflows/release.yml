@@ -1,0 +1,25 @@
+name: Release timetable core
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '17' }
+      - uses: gradle/actions/setup-gradle@v4
+      - run: ./gradlew :plugin:buildPluginDex
+      - run: |
+          cp plugin/build/plugin-dex/classes.dex user-core.dex
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" user-core.dex --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" user-core.dex --title "$GITHUB_REF_NAME" --generate-notes
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}

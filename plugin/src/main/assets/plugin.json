@@ -1,0 +1,9 @@
+{
+  "id": "com.stupidtree.hitax.user",
+  "name": "个人主页核心",
+  "version": "0.1.0",
+  "apiVersion": 11,
+  "entryClass": "com.stupidtree.hitax.plugin.UserCorePlugin",
+  "capabilities": ["hita.user.profile"],
+  "description": "T1 本地用户会话"
+}

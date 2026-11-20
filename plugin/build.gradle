@@ -1,0 +1,48 @@
+plugins {
+    id 'com.android.library'
+    id 'kotlin-android'
+}
+android {
+    namespace 'com.stupidtree.hitax'
+    defaultConfig { minSdkVersion 23; targetSdk 33; compileSdk 35
+    }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_1_8; targetCompatibility JavaVersion.VERSION_1_8 }
+    kotlinOptions { jvmTarget = '1.8' }
+}
+dependencies {
+    compileOnly 'io.github.kajimi16.ohmyhita:plugin-sdk:11'
+    compileOnly 'androidx.lifecycle:lifecycle-livedata-core:2.8.4'
+    compileOnly 'com.google.code.gson:gson:2.8.9'
+}
+
+def sdkDir = {
+    def props = new Properties()
+    def f = rootProject.file('local.properties')
+    if (f.exists()) f.withInputStream { props.load(it) }
+    props.getProperty('sdk.dir') ?: System.getenv('ANDROID_HOME') ?: System.getenv('ANDROID_SDK_ROOT')
+}
+tasks.register('buildPluginDex') {
+    dependsOn 'assembleRelease'
+    group = 'plugin'
+    description = '构建 T1 user core dex'
+    def outDir = layout.buildDirectory.dir('plugin-dex').get().asFile
+    doLast {
+        def sdk = sdkDir()
+        if (!sdk) throw new GradleException('找不到 Android SDK')
+        def aar = file("$buildDir/outputs/aar/plugin-release.aar")
+        if (!aar.exists()) throw new GradleException("AAR 不存在：$aar")
+        outDir.deleteDir(); outDir.mkdirs()
+        def jar = new File(outDir, 'classes.jar')
+        new java.util.zip.ZipFile(aar).withCloseable { zip ->
+            jar.bytes = zip.getInputStream(zip.getEntry('classes.jar')).bytes
+        }
+        exec {
+            commandLine "$sdk/build-tools/35.0.0/d8",
+                '--lib', "$sdk/platforms/android-35/android.jar",
+                '--min-api', '23', '--output', outDir.absolutePath, jar.absolutePath
+        }
+        jar.delete()
+        def dex = new File(outDir, 'classes.dex')
+        println "plugin dex: ${dex.absolutePath} (${dex.length()} bytes)"
+    }
+}
