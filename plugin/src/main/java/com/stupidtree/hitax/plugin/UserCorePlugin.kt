@@ -3,6 +3,8 @@ package com.stupidtree.hitax.plugin
 import android.app.Application
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.map
+import com.stupidtree.component.data.DataState
 import com.stupidtree.hita.api.HostEnvironmentService
 import com.stupidtree.hita.api.Plugin
 import com.stupidtree.hita.api.PluginContext
@@ -43,6 +45,23 @@ private class UserProfileImpl(private val application: Application) : UserProfil
             studentId = prefs.getString("studentId", null),
         )
         return MutableLiveData(value)
+    }
+
+    override fun login(username: String, password: String): LiveData<DataState<Boolean>> {
+        return runCatching {
+            val cls = Class.forName("com.stupidtree.stupiduser.data.repository.UserRepository")
+            val repo = cls.getMethod("getInstance", android.content.Context::class.java).invoke(null, application)
+            @Suppress("UNCHECKED_CAST")
+            val raw = cls.getMethod("login", String::class.java, String::class.java)
+                .invoke(repo, username, password) as LiveData<Any>
+            raw.map { result ->
+                val state = result.javaClass.getMethod("getState").invoke(result)?.toString()
+                if (state == "SUCCESS") DataState(true, DataState.STATE.SUCCESS)
+                else DataState(false, DataState.STATE.FETCH_FAILED)
+            }
+        }.getOrElse { error ->
+            MutableLiveData(DataState(false, DataState.STATE.FETCH_FAILED).apply { message = error.message })
+        }
     }
 
     override fun logout() {
