@@ -47,5 +47,11 @@ private class UserProfileImpl(private val application: Application) : UserProfil
 
     override fun logout() {
         prefs.edit().clear().apply()
+        // Host sync state is in a separate module; clear it through the legacy object.
+        runCatching {
+            val cls = Class.forName("com.stupidtree.sync.StupidSync")
+            val instance = cls.getField("INSTANCE").get(null)
+            cls.getMethod("setUID", String::class.java).invoke(instance, null)
+        }
     }
 }

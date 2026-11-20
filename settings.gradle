@@ -1,8 +1,8 @@
-pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }
+pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal(); maven { url = uri("https://maven.aliyun.com/repository/public") } } }
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
-        google(); mavenCentral()
+        google(); mavenCentral(); maven { url = uri("https://maven.aliyun.com/repository/public") }
         maven { url = uri("https://raw.githubusercontent.com/oh-my-hita/plugin-sdk/master/maven") }
     }
 }
